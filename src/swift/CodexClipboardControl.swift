@@ -76,7 +76,6 @@ struct ContentView: View {
             VStack(alignment: .leading, spacing: 22) {
                 header
                 quickStartCard
-                howToCard
                 advancedCard
             }
             .padding(24)
@@ -136,7 +135,7 @@ struct ContentView: View {
                         .foregroundStyle(palette.primaryText)
 
                     Text(copy.headerSubtitle)
-                        .font(.system(size: 14, weight: .medium, design: .rounded))
+                        .font(.system(size: 13, weight: .semibold, design: .rounded))
                         .foregroundStyle(palette.secondaryText)
                         .fixedSize(horizontal: false, vertical: true)
 
@@ -193,32 +192,21 @@ struct ContentView: View {
             subtitle: copy.atAGlanceSubtitle,
             palette: palette
         ) {
-            VStack(alignment: .leading, spacing: 18) {
-                VStack(alignment: .leading, spacing: 12) {
-                    Text(model.isRunning ? copy.readyHeadline : copy.stoppedHeadline)
-                        .font(.system(size: 28, weight: .bold, design: .rounded))
-                        .foregroundStyle(palette.primaryText)
-
-                    Text(model.isRunning ? copy.readyBody : copy.stoppedBody)
-                        .font(.system(size: 15, weight: .medium, design: .rounded))
-                        .foregroundStyle(palette.secondaryText)
-                        .fixedSize(horizontal: false, vertical: true)
-                }
-                .padding(18)
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .background(
-                    RoundedRectangle(cornerRadius: 22, style: .continuous)
-                        .fill(palette.softBackground)
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 22, style: .continuous)
-                                .stroke(palette.softBackgroundBorder, lineWidth: 1)
-                        )
+            VStack(alignment: .leading, spacing: 16) {
+                SummaryStrip(
+                    title: model.isRunning ? copy.readyHeadline : copy.stoppedHeadline,
+                    detail: model.isRunning ? copy.readyBody : copy.stoppedBody,
+                    systemImage: model.isRunning ? "checkmark.circle.fill" : "bolt.slash.circle.fill",
+                    palette: palette,
+                    accent: model.isRunning ? palette.statusOn : palette.statusOff
                 )
+
+                CompactWorkflowCard(copy: copy, palette: palette)
 
                 HStack(spacing: 14) {
                     ActionPanelButton(
                         title: model.isRunning ? copy.restartTitle : copy.enableTitle,
-                        subtitle: model.isRunning ? copy.restartSubtitle : copy.enableSubtitle,
+                        subtitle: nil,
                         systemImage: model.isRunning ? "arrow.clockwise.circle.fill" : "play.circle.fill",
                         tone: .primary,
                         size: .large,
@@ -229,7 +217,7 @@ struct ContentView: View {
 
                     ActionPanelButton(
                         title: copy.disableTitle,
-                        subtitle: copy.disableSubtitle,
+                        subtitle: nil,
                         systemImage: "pause.circle.fill",
                         tone: .danger,
                         size: .large,
@@ -268,27 +256,6 @@ struct ContentView: View {
                 if let errorMessage = model.lastError, !errorMessage.isEmpty {
                     ErrorBanner(message: errorMessage, palette: palette)
                 }
-            }
-        }
-    }
-
-    private var howToCard: some View {
-        Card(
-            title: copy.howToTitle,
-            subtitle: copy.howToSubtitle,
-            palette: palette
-        ) {
-            VStack(alignment: .leading, spacing: 14) {
-                StepCard(number: "1", title: copy.stepOneTitle, detail: copy.stepOneDetail, palette: palette)
-                StepCard(number: "2", title: copy.stepTwoTitle, detail: copy.stepTwoDetail, palette: palette)
-                StepCard(number: "3", title: copy.stepThreeTitle, detail: copy.stepThreeDetail, palette: palette)
-
-                TipCard(
-                    title: copy.tipTitle,
-                    detail: copy.tipBody,
-                    systemImage: "lightbulb.fill",
-                    palette: palette
-                )
             }
         }
     }
@@ -426,19 +393,22 @@ enum WindowActivationController {
 
 struct Card<Content: View>: View {
     let title: String
-    let subtitle: String
+    let subtitle: String?
     let palette: ThemePalette
     @ViewBuilder var content: Content
 
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
-            VStack(alignment: .leading, spacing: 6) {
+            VStack(alignment: .leading, spacing: 4) {
                 Text(title)
                     .font(.system(size: 17, weight: .bold, design: .rounded))
                     .foregroundStyle(palette.primaryText)
-                Text(subtitle)
-                    .font(.system(size: 13, weight: .medium, design: .rounded))
-                    .foregroundStyle(palette.secondaryText)
+
+                if let subtitle, !subtitle.isEmpty {
+                    Text(subtitle)
+                        .font(.system(size: 12, weight: .semibold, design: .rounded))
+                        .foregroundStyle(palette.secondaryText)
+                }
             }
 
             content
@@ -466,7 +436,7 @@ struct ControlPickerCard: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             Text(title)
-                .font(.system(size: 12, weight: .bold, design: .rounded))
+                .font(.system(size: 11, weight: .bold, design: .rounded))
                 .foregroundStyle(palette.mutedText)
 
             Picker(title, selection: $selection) {
@@ -476,7 +446,7 @@ struct ControlPickerCard: View {
             }
             .pickerStyle(.segmented)
         }
-        .padding(14)
+        .padding(12)
         .background(
             RoundedRectangle(cornerRadius: 20, style: .continuous)
                 .fill(palette.controlCardBackground)
@@ -496,14 +466,14 @@ struct StatusTile: View {
     let accent: Color
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
+        VStack(alignment: .leading, spacing: 10) {
             HStack(spacing: 10) {
                 ZStack {
                     Circle()
                         .fill(accent.opacity(0.16))
-                        .frame(width: 34, height: 34)
+                        .frame(width: 30, height: 30)
                     Image(systemName: systemImage)
-                        .font(.system(size: 14, weight: .bold))
+                        .font(.system(size: 13, weight: .bold))
                         .foregroundStyle(accent)
                 }
 
@@ -513,12 +483,12 @@ struct StatusTile: View {
             }
 
             Text(value)
-                .font(.system(size: 16, weight: .bold, design: .rounded))
+                .font(.system(size: 15, weight: .bold, design: .rounded))
                 .foregroundStyle(palette.primaryText)
                 .lineLimit(2)
         }
-        .padding(16)
-        .frame(maxWidth: .infinity, minHeight: 102, alignment: .topLeading)
+        .padding(14)
+        .frame(maxWidth: .infinity, minHeight: 88, alignment: .topLeading)
         .background(
             RoundedRectangle(cornerRadius: 20, style: .continuous)
                 .fill(palette.softBackground)
@@ -568,7 +538,7 @@ enum ActionTone {
 
 struct ActionPanelButton: View {
     let title: String
-    let subtitle: String
+    let subtitle: String?
     let systemImage: String
     let tone: ActionTone
     let size: ActionButtonSize
@@ -595,10 +565,12 @@ struct ActionPanelButton: View {
                     Text(title)
                         .font(.system(size: size == .large ? 15 : 14, weight: .bold, design: .rounded))
                         .foregroundStyle(colors.titleText)
-                    Text(subtitle)
-                        .font(.system(size: size == .large ? 12 : 11, weight: .medium, design: .rounded))
-                        .foregroundStyle(colors.subtitleText)
-                        .lineLimit(2)
+                    if let subtitle, !subtitle.isEmpty {
+                        Text(subtitle)
+                            .font(.system(size: size == .large ? 12 : 11, weight: .medium, design: .rounded))
+                            .foregroundStyle(colors.subtitleText)
+                            .lineLimit(2)
+                    }
                 }
 
                 Spacer(minLength: 10)
@@ -609,7 +581,7 @@ struct ActionPanelButton: View {
             }
             .padding(.horizontal, 16)
             .padding(.vertical, size.verticalPadding)
-            .frame(maxWidth: .infinity, minHeight: size == .large ? 90 : 72, alignment: .leading)
+            .frame(maxWidth: .infinity, minHeight: size == .large ? 82 : 68, alignment: .leading)
             .background(
                 RoundedRectangle(cornerRadius: size.cornerRadius, style: .continuous)
                     .fill(colors.background)
@@ -627,6 +599,137 @@ struct ActionPanelButton: View {
                 isHovering = hovering
             }
         }
+    }
+}
+
+struct CompactWorkflowCard: View {
+    let copy: CopyBook
+    let palette: ThemePalette
+
+    private let columns = [
+        GridItem(.flexible(), spacing: 10),
+        GridItem(.flexible(), spacing: 10),
+        GridItem(.flexible(), spacing: 10)
+    ]
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            HStack {
+                Text(copy.workflowTitle)
+                    .font(.system(size: 13, weight: .bold, design: .rounded))
+                    .foregroundStyle(palette.primaryText)
+                Spacer()
+                Text(copy.workflowCaption)
+                    .font(.system(size: 11, weight: .bold, design: .rounded))
+                    .foregroundStyle(palette.mutedText)
+            }
+
+            LazyVGrid(columns: columns, spacing: 10) {
+                CompactStepTile(number: "1", title: copy.stepOneTitle, icon: "camera.viewfinder", palette: palette)
+                CompactStepTile(number: "2", title: copy.stepTwoTitle, icon: "terminal.fill", palette: palette)
+                CompactStepTile(number: "3", title: copy.stepThreeTitle, icon: "command", palette: palette)
+            }
+
+            Text(copy.tipBody)
+                .font(.system(size: 12, weight: .semibold, design: .rounded))
+                .foregroundStyle(palette.secondaryText)
+        }
+        .padding(16)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(
+            RoundedRectangle(cornerRadius: 20, style: .continuous)
+                .fill(palette.tipBackground)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 20, style: .continuous)
+                        .stroke(palette.tipBorder, lineWidth: 1)
+                )
+        )
+    }
+}
+
+struct SummaryStrip: View {
+    let title: String
+    let detail: String
+    let systemImage: String
+    let palette: ThemePalette
+    let accent: Color
+
+    var body: some View {
+        HStack(alignment: .center, spacing: 14) {
+            ZStack {
+                Circle()
+                    .fill(accent.opacity(0.16))
+                    .frame(width: 36, height: 36)
+                Image(systemName: systemImage)
+                    .font(.system(size: 16, weight: .bold))
+                    .foregroundStyle(accent)
+            }
+
+            VStack(alignment: .leading, spacing: 4) {
+                Text(title)
+                    .font(.system(size: 21, weight: .bold, design: .rounded))
+                    .foregroundStyle(palette.primaryText)
+
+                Text(detail)
+                    .font(.system(size: 13, weight: .semibold, design: .rounded))
+                    .foregroundStyle(palette.secondaryText)
+            }
+
+            Spacer(minLength: 0)
+        }
+        .padding(16)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(
+            RoundedRectangle(cornerRadius: 20, style: .continuous)
+                .fill(palette.softBackground)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 20, style: .continuous)
+                        .stroke(palette.softBackgroundBorder, lineWidth: 1)
+                )
+        )
+    }
+}
+
+struct CompactStepTile: View {
+    let number: String
+    let title: String
+    let icon: String
+    let palette: ThemePalette
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            HStack {
+                ZStack {
+                    Circle()
+                        .fill(palette.stepCircle)
+                        .frame(width: 28, height: 28)
+                    Text(number)
+                        .font(.system(size: 12, weight: .bold, design: .rounded))
+                        .foregroundStyle(.white)
+                }
+
+                Spacer()
+
+                Image(systemName: icon)
+                    .font(.system(size: 14, weight: .bold))
+                    .foregroundStyle(palette.primaryText.opacity(0.7))
+            }
+
+            Text(title)
+                .font(.system(size: 14, weight: .bold, design: .rounded))
+                .foregroundStyle(palette.primaryText)
+                .lineLimit(1)
+        }
+        .padding(14)
+        .frame(maxWidth: .infinity, minHeight: 86, alignment: .topLeading)
+        .background(
+            RoundedRectangle(cornerRadius: 18, style: .continuous)
+                .fill(palette.softBackground)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 18, style: .continuous)
+                        .stroke(palette.softBackgroundBorder, lineWidth: 1)
+                )
+        )
     }
 }
 
@@ -859,9 +962,9 @@ struct CopyBook {
     var headerSubtitle: String {
         switch language {
         case .chinese:
-            "这是截图粘贴助手的控制中心。平时只要看它是不是运行中，需要时再切主题或语言。"
+            "截图后回终端，直接按 Cmd+V。"
         case .english:
-            "This is the control center for the screenshot paste helper. Most days you only need to know whether it is running."
+            "After a screenshot, return to Terminal and press Cmd+V."
         }
     }
 
@@ -890,50 +993,50 @@ struct CopyBook {
 
     var atAGlanceTitle: String {
         switch language {
-        case .chinese: "一眼看懂"
-        case .english: "At a Glance"
+        case .chinese: "主操作"
+        case .english: "Main Controls"
         }
     }
 
-    var atAGlanceSubtitle: String {
+    var atAGlanceSubtitle: String? {
         switch language {
-        case .chinese: "这里是你日常最常用的区域。确认状态，按下主要按钮，然后继续工作。"
-        case .english: "This is the part you will use most often. Check the status, hit the main action, and move on."
+        case .chinese: nil
+        case .english: nil
         }
     }
 
     var readyHeadline: String {
         switch language {
-        case .chinese: "现在可以直接用了"
-        case .english: "You can paste screenshots now"
+        case .chinese: "已就绪"
+        case .english: "Ready"
         }
     }
 
     var readyBody: String {
         switch language {
-        case .chinese: "在终端或 Codex 里正常截图，然后按 Cmd+V。去微信、飞书或浏览器时，剪贴板会恢复成真正的图片。"
-        case .english: "Take a screenshot as usual, return to Terminal or Codex, then press Cmd+V. In normal apps, the clipboard will be restored back to a real image."
+        case .chinese: "下面这 3 步就够了。"
+        case .english: "The 3 steps below are all you need."
         }
     }
 
     var stoppedHeadline: String {
         switch language {
-        case .chinese: "现在还没开启"
-        case .english: "The helper is currently off"
+        case .chinese: "先启用"
+        case .english: "Enable First"
         }
     }
 
     var stoppedBody: String {
         switch language {
-        case .chinese: "点下面的主按钮启用监听器。启用后，终端里的截图粘贴会自动转成文件路径。"
-        case .english: "Use the main button below to enable the background agent. After that, screenshot paste inside Terminal will automatically turn into a file path."
+        case .chinese: "启用后再按下面这 3 步用。"
+        case .english: "Turn it on, then follow the 3 steps below."
         }
     }
 
     var enableTitle: String {
         switch language {
-        case .chinese: "立即启用"
-        case .english: "Enable Now"
+        case .chinese: "启用"
+        case .english: "Enable"
         }
     }
 
@@ -946,8 +1049,8 @@ struct CopyBook {
 
     var restartTitle: String {
         switch language {
-        case .chinese: "重启并保持可用"
-        case .english: "Restart and Keep Active"
+        case .chinese: "重启"
+        case .english: "Restart"
         }
     }
 
@@ -960,8 +1063,8 @@ struct CopyBook {
 
     var disableTitle: String {
         switch language {
-        case .chinese: "暂时关闭"
-        case .english: "Pause Helper"
+        case .chinese: "关闭"
+        case .english: "Pause"
         }
     }
 
@@ -1018,8 +1121,8 @@ struct CopyBook {
 
     var stepOneTitle: String {
         switch language {
-        case .chinese: "确认是运行中"
-        case .english: "Make sure the agent is running"
+        case .chinese: "截图"
+        case .english: "Capture"
         }
     }
 
@@ -1032,8 +1135,8 @@ struct CopyBook {
 
     var stepTwoTitle: String {
         switch language {
-        case .chinese: "在终端里正常截图"
-        case .english: "Take screenshots the normal way"
+        case .chinese: "回终端"
+        case .english: "Back to Terminal"
         }
     }
 
@@ -1046,8 +1149,8 @@ struct CopyBook {
 
     var stepThreeTitle: String {
         switch language {
-        case .chinese: "回到 Codex 直接 Cmd+V"
-        case .english: "Return to Codex and press Cmd+V"
+        case .chinese: "Cmd+V"
+        case .english: "Cmd+V"
         }
     }
 
@@ -1067,8 +1170,8 @@ struct CopyBook {
 
     var tipBody: String {
         switch language {
-        case .chinese: "通常只有两种情况：功能失效时点重启，或者你想临时停掉它。平时不用一直盯着。"
-        case .english: "Usually there are only two reasons: restart the helper when something looks broken, or pause it temporarily. You do not need to keep this window open."
+        case .chinese: "平时不用盯着这个面板，出问题时点“重启”就行。"
+        case .english: "You do not need to keep this panel open. If something feels off, hit Restart."
         }
     }
 
@@ -1081,8 +1184,22 @@ struct CopyBook {
 
     var advancedSubtitle: String {
         switch language {
-        case .chinese: "这里放诊断、路径和清理操作。日常不用碰，排查问题时再展开。"
-        case .english: "This section holds diagnostics, paths, and cleanup actions. Ignore it most of the time and expand it only when troubleshooting."
+        case .chinese: "排查问题时再展开。"
+        case .english: "Expand only when troubleshooting."
+        }
+    }
+
+    var workflowTitle: String {
+        switch language {
+        case .chinese: "三步"
+        case .english: "Three Steps"
+        }
+    }
+
+    var workflowCaption: String {
+        switch language {
+        case .chinese: "最短流程"
+        case .english: "Shortest Path"
         }
     }
 
