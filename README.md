@@ -1,5 +1,7 @@
 # Codex Clipboard Control
 
+[English](./README.md) | [简体中文](./README.zh-CN.md)
+
 Make screenshot paste behave the way terminal-first Codex users want on macOS:
 
 - In Terminal/Codex, pasted screenshots become file paths automatically
