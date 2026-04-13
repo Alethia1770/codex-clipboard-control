@@ -8,6 +8,8 @@ Make screenshot paste behave the way terminal-first Codex users want on macOS:
 - In normal apps like WeChat, Feishu, browsers, or notes, the same clipboard is restored back to a real image
 - Includes a small SwiftUI control panel for start/stop, cache inspection, logs, and theme switching
 
+![Codex Clipboard Control panel](./docs/assets/control-panel.png)
+
 ## What It Solves
 
 Many terminal chat clients cannot accept a raw image from the system clipboard. They only accept file paths or dragged files. This project adds a background clipboard watcher that:
