@@ -5,6 +5,7 @@ import Foundation
 @main
 struct CodexClipboardControlApp: App {
     @StateObject private var model = ClipboardControlModel()
+    @NSApplicationDelegateAdaptor(ClipboardControlAppDelegate.self) private var appDelegate
 
     var body: some Scene {
         WindowGroup("Codex Clipboard Control") {
@@ -14,6 +15,17 @@ struct CodexClipboardControlApp: App {
                        minHeight: 620, idealHeight: 700, maxHeight: 860)
         }
         .windowResizability(.contentSize)
+    }
+}
+
+final class ClipboardControlAppDelegate: NSObject, NSApplicationDelegate {
+    func applicationDidFinishLaunching(_ notification: Notification) {
+        WindowActivationController.activate()
+    }
+
+    func applicationShouldHandleReopen(_ sender: NSApplication, hasVisibleWindows flag: Bool) -> Bool {
+        WindowActivationController.activate()
+        return true
     }
 }
 
@@ -73,6 +85,7 @@ struct ContentView: View {
         .preferredColorScheme(themeMode.colorScheme)
         .onAppear {
             model.start()
+            WindowActivationController.activate()
         }
     }
 
@@ -391,6 +404,22 @@ struct ContentView: View {
                 .padding(.vertical, 2)
             }
             .tint(palette.primaryText)
+        }
+    }
+}
+
+enum WindowActivationController {
+    static func activate() {
+        for delay in [0.0, 0.12, 0.32] {
+            DispatchQueue.main.asyncAfter(deadline: .now() + delay) {
+                NSApp.setActivationPolicy(.regular)
+                NSRunningApplication.current.activate(options: [.activateAllWindows])
+                NSApp.activate(ignoringOtherApps: true)
+                NSApp.windows.forEach { window in
+                    window.makeKeyAndOrderFront(nil)
+                    window.orderFrontRegardless()
+                }
+            }
         }
     }
 }

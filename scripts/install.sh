@@ -15,6 +15,8 @@ CONTROL_APP="$APPS_DIR/Codex Clipboard Control.app"
 BUILD_DIR="$INSTALL_ROOT/build"
 SRC_DIR="$INSTALL_ROOT/src"
 BIN_INSTALL_DIR="$INSTALL_ROOT/bin"
+CONTROL_MACOS_DIR="$CONTROL_APP/Contents/MacOS"
+CONTROL_RESOURCES_DIR="$CONTROL_APP/Contents/Resources"
 
 mkdir -p "$INSTALL_ROOT" "$BIN_DIR" "$APPS_DIR" "$LAUNCH_AGENTS_DIR" "$BUILD_DIR" "$BIN_INSTALL_DIR"
 rm -rf "$SRC_DIR"
@@ -122,17 +124,42 @@ osacompile -l JavaScript -o "$PASTE_IMAGE_APP" "$SRC_DIR/jxa/Codex Paste Image.j
 swiftc -parse-as-library -O -framework SwiftUI -framework AppKit \
   "$SRC_DIR/swift/CodexClipboardControl.swift" \
   -o "$BUILD_DIR/CodexClipboardControlUI"
-osacompile -l JavaScript -o "$CONTROL_APP" "$SRC_DIR/jxa/CodexClipboardControlLauncher.js"
-cp "$BUILD_DIR/CodexClipboardControlUI" "$CONTROL_APP/Contents/Resources/CodexClipboardControlUI"
-/usr/libexec/PlistBuddy -c 'Print :CFBundleIdentifier' "$CONTROL_APP/Contents/Info.plist" >/dev/null 2>&1 && \
-  /usr/libexec/PlistBuddy -c 'Set :CFBundleIdentifier io.github.codexclipboardcontrol' "$CONTROL_APP/Contents/Info.plist" >/dev/null || \
-  /usr/libexec/PlistBuddy -c 'Add :CFBundleIdentifier string io.github.codexclipboardcontrol' "$CONTROL_APP/Contents/Info.plist" >/dev/null
-/usr/libexec/PlistBuddy -c 'Print :CFBundleName' "$CONTROL_APP/Contents/Info.plist" >/dev/null 2>&1 && \
-  /usr/libexec/PlistBuddy -c 'Set :CFBundleName Codex Clipboard Control' "$CONTROL_APP/Contents/Info.plist" >/dev/null || \
-  /usr/libexec/PlistBuddy -c 'Add :CFBundleName string Codex Clipboard Control' "$CONTROL_APP/Contents/Info.plist" >/dev/null
-/usr/libexec/PlistBuddy -c 'Print :CFBundleDisplayName' "$CONTROL_APP/Contents/Info.plist" >/dev/null 2>&1 && \
-  /usr/libexec/PlistBuddy -c 'Set :CFBundleDisplayName Codex Clipboard Control' "$CONTROL_APP/Contents/Info.plist" >/dev/null || \
-  /usr/libexec/PlistBuddy -c 'Add :CFBundleDisplayName string Codex Clipboard Control' "$CONTROL_APP/Contents/Info.plist" >/dev/null
+rm -rf "$CONTROL_APP"
+mkdir -p "$CONTROL_MACOS_DIR" "$CONTROL_RESOURCES_DIR"
+cp "$BUILD_DIR/CodexClipboardControlUI" "$CONTROL_MACOS_DIR/CodexClipboardControlUI"
+cat > "$CONTROL_APP/Contents/Info.plist" <<'EOF'
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>CFBundleDevelopmentRegion</key>
+  <string>en</string>
+  <key>CFBundleDisplayName</key>
+  <string>Codex Clipboard Control</string>
+  <key>CFBundleExecutable</key>
+  <string>CodexClipboardControlUI</string>
+  <key>CFBundleIdentifier</key>
+  <string>io.github.codexclipboardcontrol</string>
+  <key>CFBundleInfoDictionaryVersion</key>
+  <string>6.0</string>
+  <key>CFBundleName</key>
+  <string>Codex Clipboard Control</string>
+  <key>CFBundlePackageType</key>
+  <string>APPL</string>
+  <key>CFBundleShortVersionString</key>
+  <string>1.0</string>
+  <key>CFBundleVersion</key>
+  <string>1</string>
+  <key>LSMinimumSystemVersion</key>
+  <string>13.0</string>
+  <key>NSHighResolutionCapable</key>
+  <true/>
+  <key>NSSupportsAutomaticGraphicsSwitching</key>
+  <true/>
+</dict>
+</plist>
+EOF
+/usr/bin/touch "$CONTROL_APP"
 /usr/bin/codesign --force --deep -s - "$CONTROL_APP" >/dev/null
 
 cat > "$BIN_DIR/codex-paste-image" <<EOF
@@ -157,7 +184,6 @@ EOF
 cat > "$BIN_DIR/codex-clipboard-control-ui" <<EOF
 #!/bin/zsh
 set -euo pipefail
-launcher="$CONTROL_APP/Contents/MacOS/applet"
 if [[ "\${1:-}" == "--help" ]]; then
   cat <<'USAGE'
 Usage: codex-clipboard-control-ui
@@ -166,7 +192,7 @@ Launch the Codex Clipboard Control graphical panel.
 USAGE
   exit 0
 fi
-"\$launcher" >/tmp/codex-clipboard-control-launcher.stdout.log 2>/tmp/codex-clipboard-control-launcher.stderr.log </dev/null &!
+exec open -a "$CONTROL_APP"
 EOF
 
 chmod +x \
@@ -185,7 +211,16 @@ sed \
 
 uid="$(id -u)"
 launchctl bootout "gui/$uid" "$LAUNCH_AGENT_PATH" >/dev/null 2>&1 || true
-launchctl bootstrap "gui/$uid" "$LAUNCH_AGENT_PATH"
+if ! launchctl bootstrap "gui/$uid" "$LAUNCH_AGENT_PATH"; then
+  cat <<EOF
+
+Warning: LaunchAgent bootstrap did not complete automatically.
+You can retry it manually with:
+
+  launchctl bootstrap gui/$uid "$LAUNCH_AGENT_PATH"
+
+EOF
+fi
 
 cat <<EOF
 
