@@ -6,7 +6,7 @@ Make screenshot paste behave the way terminal-first Codex users want on macOS:
 
 - In Terminal/Codex, pasted screenshots become file paths automatically
 - In normal apps like WeChat, Feishu, browsers, or notes, the same clipboard is restored back to a real image
-- Includes a small SwiftUI control panel for start/stop, cache inspection, logs, and theme switching
+- Includes a polished SwiftUI control panel for start/stop, cache inspection, logs, theme switching, and Chinese/English UI switching
 
 ![Codex Clipboard Control panel](./docs/assets/control-panel.png)
 
