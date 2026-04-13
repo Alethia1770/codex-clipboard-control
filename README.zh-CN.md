@@ -8,7 +8,7 @@
 - 在微信、飞书、浏览器、笔记等普通应用里，同一份剪贴板会恢复成真正的图片
 - 内置一个更讲究的 SwiftUI 控制面板，可以启停、查看缓存、查看日志、切换主题，并在中文和英文界面之间切换
 
-![Codex Clipboard Control 控制面板](./docs/assets/control-panel.png)
+![Codex Clipboard Control 控制面板](./docs/assets/control-panel-current.png)
 
 ## 解决了什么问题
 
