@@ -2,11 +2,13 @@
 
 [English](./README.md) | [简体中文](./README.zh-CN.md)
 
-Make screenshot paste behave the way terminal-first Codex users want on macOS:
+A tiny macOS bridge that lets screenshots paste directly into terminal-based AI agents.
 
-- In Terminal/Codex, pasted screenshots become file paths automatically
-- In normal apps like WeChat, Feishu, browsers, or notes, the same clipboard is restored back to a real image
-- Includes a polished SwiftUI control panel for start/stop, cache inspection, logs, theme switching, and Chinese/English UI switching
+Core promise: take a screenshot with your existing screenshot app, return to Terminal or an agent CLI, press `Cmd+V`.
+
+- In Terminal/Codex, pasted screenshots become file paths automatically.
+- In normal apps like WeChat, Feishu, browsers, or notes, the same clipboard is restored back to a real image.
+- Includes a SwiftUI control panel for start/stop, cache inspection, logs, theme switching, and Chinese/English UI switching.
 
 ![Codex Clipboard Control panel](./docs/assets/control-panel-current.png)
 
@@ -28,6 +30,14 @@ Many terminal chat clients cannot accept a raw image from the system clipboard. 
 These are available on a normal macOS developer machine with Xcode Command Line Tools.
 
 ## Install
+
+For early users, unzip a release build and double-click:
+
+```text
+install.command
+```
+
+For CLI install:
 
 ```bash
 zsh scripts/install.sh
@@ -66,7 +76,7 @@ codex-paste-image
 zsh scripts/package.sh
 ```
 
-This writes a distributable source archive into `dist/`.
+This writes a distributable archive into `dist/`. The zip includes `install.command` for double-click installation.
 
 ## Supported Terminal Detection
 
@@ -93,9 +103,32 @@ zsh scripts/uninstall.sh
 
 ## Troubleshooting
 
-- Auto paste not working: restart the agent from the control panel
-- Other apps still paste text: make sure the latest screenshot was taken while the agent was running
-- Need logs: inspect `/tmp/codex-auto-paste.log`
+- Auto paste not working: restart the agent from the control panel.
+- Other apps still paste text: make sure the latest screenshot was taken while the agent was running.
+- Run diagnostics:
+
+```bash
+zsh scripts/diagnose.sh
+```
+
+More detail: [Troubleshooting](./docs/TROUBLESHOOTING.md)
+
+## Stage 1 Validation
+
+Before charging for the product, test whether real terminal-agent users keep it running after the first day.
+
+Use this checklist: [Stage 1 Testing Matrix](./docs/TESTING_MATRIX.md)
+
+## Feedback
+
+When reporting a problem, include:
+
+- macOS version
+- screenshot app name
+- terminal or agent CLI name
+- output from `zsh scripts/diagnose.sh`
+
+For early validation, ask testers one question first: after taking a screenshot, did returning to the terminal and pressing `Cmd+V` feel natural enough to keep this app installed?
 
 ## License
 

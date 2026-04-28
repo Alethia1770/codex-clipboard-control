@@ -34,6 +34,7 @@ struct ContentView: View {
     @Environment(\.colorScheme) private var systemColorScheme
     @AppStorage("codexClipboardThemeMode") private var themeModeRaw = ThemeMode.system.rawValue
     @AppStorage("codexClipboardLanguageMode") private var languageModeRaw = LanguageMode.system.rawValue
+    @AppStorage("codexClipboardFirstRunGuideDismissed") private var firstRunGuideDismissed = false
     @State private var showAdvanced = false
 
     private var themeMode: ThemeMode {
@@ -114,20 +115,8 @@ struct ContentView: View {
     private var header: some View {
         HStack(alignment: .top, spacing: 18) {
             HStack(alignment: .center, spacing: 16) {
-                ZStack {
-                    RoundedRectangle(cornerRadius: 24, style: .continuous)
-                        .fill(palette.iconPanel)
-                        .frame(width: 84, height: 84)
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 24, style: .continuous)
-                                .stroke(palette.iconPanelBorder, lineWidth: 1)
-                        )
-
-                    Image(systemName: "paperclip.circle.fill")
-                        .font(.system(size: 38, weight: .bold))
-                        .foregroundStyle(palette.iconSymbol)
-                }
-                .shadow(color: palette.shadowColor.opacity(0.35), radius: 20, x: 0, y: 10)
+                HeaderAppIcon(palette: palette)
+                    .shadow(color: palette.shadowColor.opacity(0.35), radius: 20, x: 0, y: 10)
 
                 VStack(alignment: .leading, spacing: 8) {
                     Text(copy.appName)
@@ -200,6 +189,12 @@ struct ContentView: View {
                     palette: palette,
                     accent: model.isRunning ? palette.statusOn : palette.statusOff
                 )
+
+                if !firstRunGuideDismissed {
+                    FirstRunCallout(copy: copy, palette: palette) {
+                        firstRunGuideDismissed = true
+                    }
+                }
 
                 CompactWorkflowCard(copy: copy, palette: palette)
 
@@ -424,6 +419,85 @@ struct Card<Content: View>: View {
                 )
         )
         .shadow(color: palette.shadowColor, radius: 22, x: 0, y: 16)
+    }
+}
+
+struct HeaderAppIcon: View {
+    let palette: ThemePalette
+
+    private var bundledIcon: NSImage? {
+        guard let url = Bundle.main.url(forResource: "AppIcon", withExtension: "icns") else {
+            return nil
+        }
+        return NSImage(contentsOf: url)
+    }
+
+    var body: some View {
+        Group {
+            if let bundledIcon {
+                Image(nsImage: bundledIcon)
+                    .resizable()
+                    .interpolation(.high)
+                    .scaledToFit()
+            } else {
+                fallbackIcon
+            }
+        }
+        .frame(width: 84, height: 84)
+        .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
+        .overlay(
+            RoundedRectangle(cornerRadius: 18, style: .continuous)
+                .stroke(palette.iconPanelBorder, lineWidth: 1)
+        )
+    }
+
+    private var fallbackIcon: some View {
+        ZStack {
+            RoundedRectangle(cornerRadius: 18, style: .continuous)
+                .fill(Color(red: 1.0, green: 0.09, blue: 0.09))
+
+            ScreenshotTerminalGlyph()
+                .stroke(Color.white, style: StrokeStyle(lineWidth: 5, lineCap: .round, lineJoin: .round))
+                .padding(13)
+        }
+    }
+}
+
+struct ScreenshotTerminalGlyph: Shape {
+    func path(in rect: CGRect) -> Path {
+        let unit = min(rect.width, rect.height) / 84
+        func point(_ x: CGFloat, _ y: CGFloat) -> CGPoint {
+            CGPoint(x: rect.minX + x * unit, y: rect.minY + y * unit)
+        }
+
+        var path = Path()
+        path.move(to: point(14, 25))
+        path.addLine(to: point(14, 17))
+        path.addQuadCurve(to: point(22, 9), control: point(14, 9))
+        path.addLine(to: point(30, 9))
+
+        path.move(to: point(54, 9))
+        path.addLine(to: point(62, 9))
+        path.addQuadCurve(to: point(70, 17), control: point(70, 9))
+        path.addLine(to: point(70, 25))
+
+        path.move(to: point(70, 59))
+        path.addLine(to: point(70, 67))
+        path.addQuadCurve(to: point(62, 75), control: point(70, 75))
+        path.addLine(to: point(54, 75))
+
+        path.move(to: point(30, 75))
+        path.addLine(to: point(22, 75))
+        path.addQuadCurve(to: point(14, 67), control: point(14, 75))
+        path.addLine(to: point(14, 59))
+
+        path.move(to: point(35, 31))
+        path.addLine(to: point(47, 42))
+        path.addLine(to: point(35, 53))
+
+        path.move(to: point(56, 31))
+        path.addLine(to: point(56, 53))
+        return path
     }
 }
 
@@ -685,6 +759,60 @@ struct SummaryStrip: View {
                 .overlay(
                     RoundedRectangle(cornerRadius: 20, style: .continuous)
                         .stroke(palette.softBackgroundBorder, lineWidth: 1)
+                )
+        )
+    }
+}
+
+struct FirstRunCallout: View {
+    let copy: CopyBook
+    let palette: ThemePalette
+    let dismiss: () -> Void
+
+    var body: some View {
+        HStack(alignment: .center, spacing: 14) {
+            ZStack {
+                Circle()
+                    .fill(palette.accentBlue.opacity(0.16))
+                    .frame(width: 34, height: 34)
+                Image(systemName: "sparkle.magnifyingglass")
+                    .font(.system(size: 14, weight: .bold))
+                    .foregroundStyle(palette.accentBlue)
+            }
+
+            VStack(alignment: .leading, spacing: 3) {
+                Text(copy.firstRunTitle)
+                    .font(.system(size: 13, weight: .bold, design: .rounded))
+                    .foregroundStyle(palette.primaryText)
+                Text(copy.firstRunBody)
+                    .font(.system(size: 12, weight: .semibold, design: .rounded))
+                    .foregroundStyle(palette.secondaryText)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+
+            Spacer(minLength: 8)
+
+            Button(action: dismiss) {
+                Image(systemName: "xmark")
+                    .font(.system(size: 11, weight: .bold))
+                    .foregroundStyle(palette.mutedText)
+                    .frame(width: 28, height: 28)
+                    .background(
+                        Circle()
+                            .fill(palette.softBackground)
+                    )
+            }
+            .buttonStyle(.plain)
+            .accessibilityLabel(copy.dismissFirstRunTitle)
+        }
+        .padding(14)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(
+            RoundedRectangle(cornerRadius: 18, style: .continuous)
+                .fill(palette.controlCardBackground)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 18, style: .continuous)
+                        .stroke(palette.controlCardBorder, lineWidth: 1)
                 )
         )
     }
@@ -1102,6 +1230,27 @@ struct CopyBook {
             return "\(count) 张"
         case .english:
             return count == 1 ? "1 item" : "\(count) items"
+        }
+    }
+
+    var firstRunTitle: String {
+        switch language {
+        case .chinese: "首次使用"
+        case .english: "First Run"
+        }
+    }
+
+    var firstRunBody: String {
+        switch language {
+        case .chinese: "确认监听器运行后，正常截图，回到终端或 Agent CLI，直接按 Cmd+V。"
+        case .english: "Confirm the listener is running, take a screenshot, return to Terminal or an agent CLI, then press Cmd+V."
+        }
+    }
+
+    var dismissFirstRunTitle: String {
+        switch language {
+        case .chinese: "关闭首次使用提示"
+        case .english: "Dismiss first-run guide"
         }
     }
 

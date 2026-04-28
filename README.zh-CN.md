@@ -2,11 +2,13 @@
 
 [English](./README.md) | [简体中文](./README.zh-CN.md)
 
-让 macOS 上的截图粘贴，更符合终端/Codex 用户的使用习惯：
+让任何截图工具都能直接粘贴到终端 AI Agent 的 macOS 小工具。
 
-- 在 Terminal / Codex 里，截图粘贴会自动变成文件路径
-- 在微信、飞书、浏览器、笔记等普通应用里，同一份剪贴板会恢复成真正的图片
-- 内置一个更讲究的 SwiftUI 控制面板，可以启停、查看缓存、查看日志、切换主题，并在中文和英文界面之间切换
+核心承诺：用你原来的截图软件截图，回到 Terminal 或 Agent CLI，直接按 `Cmd+V`。
+
+- 在 Terminal / Codex 里，截图粘贴会自动变成文件路径。
+- 在微信、飞书、浏览器、笔记等普通应用里，同一份剪贴板会恢复成真正的图片。
+- 内置 SwiftUI 控制面板，可以启停、查看缓存、查看日志、切换主题，并在中文和英文界面之间切换。
 
 ![Codex Clipboard Control 控制面板](./docs/assets/control-panel-current.png)
 
@@ -28,6 +30,14 @@
 这些工具在安装了 Xcode Command Line Tools 的正常 macOS 开发环境里都可以拿到。
 
 ## 安装
+
+给早期用户试用时，解压发布包后双击：
+
+```text
+install.command
+```
+
+命令行安装：
 
 ```bash
 zsh scripts/install.sh
@@ -66,7 +76,7 @@ codex-paste-image
 zsh scripts/package.sh
 ```
 
-会在 `dist/` 目录下生成一个可分发的源码压缩包。
+会在 `dist/` 目录下生成一个可分发压缩包，里面包含可双击安装的 `install.command`。
 
 ## 当前支持的终端识别
 
@@ -93,9 +103,32 @@ zsh scripts/uninstall.sh
 
 ## 故障排查
 
-- 自动粘贴失效：先在控制面板里重启后台监听器
-- 其他应用仍然粘贴成文本：确认这次截图发生时，后台监听器是运行中的
-- 需要看日志：检查 `/tmp/codex-auto-paste.log`
+- 自动粘贴失效：先在控制面板里重启后台监听器。
+- 其他应用仍然粘贴成文本：确认这次截图发生时，后台监听器是运行中的。
+- 运行诊断：
+
+```bash
+zsh scripts/diagnose.sh
+```
+
+详细排查文档：[故障排查](./docs/TROUBLESHOOTING.zh-CN.md)
+
+## 阶段 1 验证
+
+现阶段的目标不是堆功能，而是验证真实终端 Agent 用户是否会在第一天之后继续开着它。
+
+测试清单：[阶段 1 测试清单](./docs/TESTING_MATRIX.zh-CN.md)
+
+## 反馈
+
+反馈问题时，请附上：
+
+- macOS 版本
+- 截图软件名称
+- 终端或 Agent CLI 名称
+- `zsh scripts/diagnose.sh` 的输出
+
+阶段 1 最关键的问题是：截图后回终端按 `Cmd+V` 这个动作，是否自然到值得你继续保留这个工具？
 
 ## 许可证
 

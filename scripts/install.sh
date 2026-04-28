@@ -17,6 +17,7 @@ SRC_DIR="$INSTALL_ROOT/src"
 BIN_INSTALL_DIR="$INSTALL_ROOT/bin"
 CONTROL_MACOS_DIR="$CONTROL_APP/Contents/MacOS"
 CONTROL_RESOURCES_DIR="$CONTROL_APP/Contents/Resources"
+CONTROL_ICON="$ROOT_DIR/resources/AppIcon.icns"
 
 mkdir -p "$INSTALL_ROOT" "$BIN_DIR" "$APPS_DIR" "$LAUNCH_AGENTS_DIR" "$BUILD_DIR" "$BIN_INSTALL_DIR"
 rm -rf "$SRC_DIR"
@@ -111,7 +112,8 @@ exec /usr/bin/swift "\$script"
 EOF
 
 echo "Building app bundles..."
-osacompile -l JavaScript -o "$AUTO_PASTE_APP" "$SRC_DIR/jxa/Codex Auto Paste Image.js"
+rm -rf "$AUTO_PASTE_APP" "$PASTE_IMAGE_APP"
+osacompile -l JavaScript -s -o "$AUTO_PASTE_APP" "$SRC_DIR/jxa/Codex Auto Paste Image.js"
 /usr/libexec/PlistBuddy -c 'Add :LSUIElement bool true' "$AUTO_PASTE_APP/Contents/Info.plist" >/dev/null 2>&1 || \
   /usr/libexec/PlistBuddy -c 'Set :LSUIElement true' "$AUTO_PASTE_APP/Contents/Info.plist" >/dev/null
 /usr/bin/codesign --force --deep -s - "$AUTO_PASTE_APP" >/dev/null
@@ -127,6 +129,9 @@ swiftc -parse-as-library -O -framework SwiftUI -framework AppKit \
 rm -rf "$CONTROL_APP"
 mkdir -p "$CONTROL_MACOS_DIR" "$CONTROL_RESOURCES_DIR"
 cp "$BUILD_DIR/CodexClipboardControlUI" "$CONTROL_MACOS_DIR/CodexClipboardControlUI"
+if [[ -f "$CONTROL_ICON" ]]; then
+  cp "$CONTROL_ICON" "$CONTROL_RESOURCES_DIR/AppIcon.icns"
+fi
 cat > "$CONTROL_APP/Contents/Info.plist" <<'EOF'
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
@@ -138,6 +143,8 @@ cat > "$CONTROL_APP/Contents/Info.plist" <<'EOF'
   <string>Codex Clipboard Control</string>
   <key>CFBundleExecutable</key>
   <string>CodexClipboardControlUI</string>
+  <key>CFBundleIconFile</key>
+  <string>AppIcon</string>
   <key>CFBundleIdentifier</key>
   <string>io.github.codexclipboardcontrol</string>
   <key>CFBundleInfoDictionaryVersion</key>
